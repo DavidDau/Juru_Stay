@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/signup_page.dart';
@@ -18,9 +17,9 @@ final router = GoRouter(
     GoRoute(path: '/', builder: (context, state) => const LoadingPage()),
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
-    GoRoute(path: '/home', builder: (context, state) => const HomePage()),
-    GoRoute(path: '/places', builder: (context, state) => const PlacesPage()),
-    GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
+    GoRoute(path: '/home', builder: (context, state) =>  HomePage()),
+    GoRoute(path: '/places', builder: (context, state) =>  PlacesPage()),
+    GoRoute(path: '/search', builder: (context, state) =>  SearchPage()),
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsPage(),

@@ -3,20 +3,20 @@ import '../model/user_model.dart';
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<UserModel?>>((ref) {
-      return AuthController(ref);
-    });
+  final controller = AuthController(ref);
+  controller.getCurrentUser(); // Immediately fetch user when app starts
+  return controller;
+});
 
 class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
-  AuthController(this.ref) : super(const AsyncValue.data(null));
+  AuthController(this.ref) : super(const AsyncValue.loading());
 
   final Ref ref;
 
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      // TODO: Implement login logic
-      // For now, we'll just simulate a login
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1)); // Simulated delay
       final user = UserModel(
         id: '1',
         email: email,
@@ -33,8 +33,6 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> signup(String name, String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      // TODO: Implement signup logic
-      // For now, we'll just simulate a signup
       await Future.delayed(const Duration(seconds: 1));
       final user = UserModel(
         id: '1',
@@ -52,7 +50,6 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> logout() async {
     state = const AsyncValue.loading();
     try {
-      // TODO: Implement logout logic
       await Future.delayed(const Duration(seconds: 1));
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -61,11 +58,11 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
   }
 
   Future<void> getCurrentUser() async {
-    state = const AsyncValue.loading();
     try {
-      // TODO: Implement get current user logic
       await Future.delayed(const Duration(seconds: 1));
-      state = const AsyncValue.data(null);
+      // Simulate user already logged in or null
+      final user = null; // Change to a dummy user if needed
+      state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

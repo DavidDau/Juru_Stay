@@ -4,39 +4,35 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants.dart';
 import '../auth/controller/auth_controller.dart';
 
-class LoadingPage extends ConsumerStatefulWidget {
+class LoadingPage extends ConsumerWidget {
   const LoadingPage({super.key});
 
   @override
-  ConsumerState<LoadingPage> createState() => _LoadingPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
 
-class _LoadingPageState extends ConsumerState<LoadingPage> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuth();
-  }
-
-  Future<void> _checkAuth() async {
-    await ref.read(authControllerProvider.notifier).getCurrentUser();
-    if (!mounted) return;
-
-    final authState = ref.read(authControllerProvider);
-    authState.whenOrNull(
+    return authState.when(
       data: (user) {
-        if (user != null) {
-          context.go(AppConstants.homeRoute);
-        } else {
-          context.go(AppConstants.loginRoute);
-        }
-      },
-      error: (_, __) => context.go(AppConstants.loginRoute),
-    );
-  }
+        // Trigger navigation after build completes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (user != null) {
+            context.go(AppConstants.homeRoute);
+          } else {
+            context.go(AppConstants.loginRoute);
+          }
+        });
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        // Still show loading while navigation occurs
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text('Error: $e')),
+      ),
+    );
   }
 }

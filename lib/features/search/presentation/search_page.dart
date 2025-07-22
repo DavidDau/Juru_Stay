@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class SearchPage extends StatelessWidget {
   final List<Map<String, dynamic>> tours = [
     {
       'title': 'City Sightseeing',
