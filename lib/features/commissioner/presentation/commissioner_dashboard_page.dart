@@ -64,14 +64,14 @@ class CommissionerDashboardPage extends StatelessWidget {
                   icon: Icons.add_location_alt,
                   label: 'Add Place',
                   onTap: () {
-                    context.push('/commissioner/add-place');
+                    context.push('/add-place');
                   },
                 ),
                 buildDashboardButton(
                   icon: Icons.bar_chart,
                   label: 'Track Earnings',
                   onTap: () {
-                    context.push('/commissioner/track-earnings');
+                    context.push('/track-earnings');
                   },
                 ),
                 buildDashboardButton(
