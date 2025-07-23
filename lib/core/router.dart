@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:juru_stay/features/commissioner/presentation/add_place_page.dart';
+import 'package:juru_stay/features/commissioner/presentation/track_earnings_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/signup_page.dart';
 import '../features/homepage/homepage.dart';
@@ -35,7 +37,15 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/commissioner/profile',
-      builder: (context, state) => const CommissionerProfilePage(),
+      builder: (context, state) => const EditCommissionerProfilePage(),
     ),
+    GoRoute(
+  path: '/add-place',
+  builder: (context, state) => const AddPlacePage(),
+),
+GoRoute(
+  path: '/track-earnings',
+  builder: (context, state) => const TrackEarningsPage(),
+),
   ],
 );
