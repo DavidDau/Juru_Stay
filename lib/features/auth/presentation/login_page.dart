@@ -29,37 +29,109 @@ class LoginPage extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: AppConstants.defaultPadding),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: AppConstants.defaultPadding * 2),
-            ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(authControllerProvider.notifier)
-                    .login(emailController.text, passwordController.text);
-              },
-              child: const Text('Login'),
-            ),
-            TextButton(
-              onPressed: () => context.go(AppConstants.signupRoute),
-              child: const Text('Don\'t have an account? Sign up'),
-            ),
-          ],
+      backgroundColor: const Color.fromARGB(
+        255,
+        185,
+        233,
+        255,
+      ), // Sky-blue background
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Login to your JuruStay account',
+                style: TextStyle(fontSize: 18, color: Colors.black87),
+              ),
+              const SizedBox(height: 40),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Email',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  hintText: 'Password',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final authState = ref.watch(authControllerProvider);
+                    return ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          3,
+                          80,
+                          144,
+                        ), // Blue button
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: authState.isLoading
+                          ? null
+                          : () {
+                              ref
+                                  .read(authControllerProvider.notifier)
+                                  .login(
+                                    emailController.text,
+                                    passwordController.text,
+                                  );
+                            },
+                      child: authState.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color.fromARGB(221, 255, 255, 255),
+                              ),
+                            ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: TextButton(
+                  onPressed: () => context.go(AppConstants.signupRoute),
+                  child: const Text(
+                    'Don\'t have an account? Sign up',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 3, 80, 144),
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/login_page.dart';
-import '../features/auth/presentation/signup_page.dart';
+import '../features/auth/presentation/create_account_page.dart';
+import '../features/test/test_page.dart';
 import '../features/homepage/homepage.dart';
 import '../features/loading/loading_page.dart';
 import '../features/places/presentation/places_page.dart';
@@ -15,11 +16,15 @@ final router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const LoadingPage()),
+    GoRoute(path: '/test', builder: (context, state) => const TestPage()),
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-    GoRoute(path: '/signup', builder: (context, state) => const SignupPage()),
-    GoRoute(path: '/home', builder: (context, state) =>  HomePage()),
-    GoRoute(path: '/places', builder: (context, state) =>  PlacesPage()),
-    GoRoute(path: '/search', builder: (context, state) =>  SearchPage()),
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => const CreateAccountPage(),
+    ),
+    GoRoute(path: '/home', builder: (context, state) => HomePage()),
+    GoRoute(path: '/places', builder: (context, state) => PlacesPage()),
+    GoRoute(path: '/search', builder: (context, state) => SearchPage()),
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsPage(),

@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -50,19 +47,30 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCWEsGd0uBUoi-h5mC26Rk9XRRfPJ5dHsw',
-    appId: '1:1027606837746:web:a688fd5d8c59c69073936b',
-    messagingSenderId: '1027606837746',
-    projectId: 'jurustay-app',
-    authDomain: 'jurustay-app.firebaseapp.com',
-    storageBucket: 'jurustay-app.firebasestorage.app',
+    apiKey: 'AIzaSyBkuKAUwZNSknr2M0KeqJ6F26QBHNT4l7k',
+    appId: '1:931019713536:web:2045faed24f1af2dc5bce5',
+    messagingSenderId: '931019713536',
+    projectId: 'juru-5d489',
+    authDomain: 'juru-5d489.firebaseapp.com',
+    storageBucket: 'juru-5d489.firebasestorage.app',
+    measurementId: 'G-FWE0R2S8YY',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAP_NCAXO40Dr83bJJFlciULJzro4c6FGg',
-    appId: '1:1027606837746:android:21df6061b879c2cb73936b',
-    messagingSenderId: '1027606837746',
-    projectId: 'jurustay-app',
-    storageBucket: 'jurustay-app.firebasestorage.app',
+    apiKey: 'AIzaSyAZgysz_QmyyZgVS-0X0DImWS_RzfnhYR4',
+    appId: '1:931019713536:android:347d633beca224aac5bce5',
+    messagingSenderId: '931019713536',
+    projectId: 'juru-5d489',
+    storageBucket: 'juru-5d489.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDp-thQMAhwlpQM5IgxBSHLoU11YaK8A_0',
+    appId: '1:931019713536:ios:856396adbeacced4c5bce5',
+    messagingSenderId: '931019713536',
+    projectId: 'juru-5d489',
+    storageBucket: 'juru-5d489.firebasestorage.app',
+    iosBundleId: 'com.example.juruStay',
+  );
+
 }

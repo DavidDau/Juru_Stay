@@ -4,14 +4,14 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants.dart';
 import '../controller/auth_controller.dart';
 
-class SignupPage extends ConsumerStatefulWidget {
-  const SignupPage({super.key});
+class CreateAccountPage extends ConsumerStatefulWidget {
+  const CreateAccountPage({super.key});
 
   @override
-  ConsumerState<SignupPage> createState() => _SignupPageState();
+  ConsumerState<CreateAccountPage> createState() => _CreateAccountPageState();
 }
 
-class _SignupPageState extends ConsumerState<SignupPage> {
+class _CreateAccountPageState extends ConsumerState<CreateAccountPage> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
@@ -133,8 +133,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             selectedRole = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Please select a role' : null,
                       ),
                     ),
                     const SizedBox(height: 16),

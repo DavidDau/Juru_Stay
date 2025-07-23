@@ -5,13 +5,12 @@ import '../services/auth_service.dart';
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<UserModel?>>((ref) {
-      final controller = AuthController(ref);
-      controller.getCurrentUser();
-      return controller;
+      // Don't automatically check current user to prevent initialization issues
+      return AuthController(ref);
     });
 
 class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
-  AuthController(this.ref) : super(const AsyncValue.loading());
+  AuthController(this.ref) : super(const AsyncValue.data(null));
 
   final Ref ref;
 
@@ -51,14 +50,18 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
 
   Future<void> getCurrentUser() async {
     try {
+      print('👤 Checking current user...');
       final currentUser = AuthService.currentUser;
       if (currentUser != null) {
+        print('✅ Current user found: ${currentUser.email}');
         final user = await AuthService.getUserData(currentUser.uid);
         state = AsyncValue.data(user);
       } else {
+        print('ℹ️ No current user found');
         state = const AsyncValue.data(null);
       }
     } catch (e, st) {
+      print('❌ Get current user error: $e');
       state = AsyncValue.error(e, st);
     }
   }
@@ -77,5 +80,9 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
   }
 }

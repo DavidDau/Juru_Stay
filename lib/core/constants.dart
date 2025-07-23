@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppConstants {
   // API Endpoints
   static const String baseUrl = 'https://api.jurustay.com';
@@ -28,8 +30,18 @@ class AppConstants {
   static const int apiTimeoutSeconds = 30;
   static const int cacheValidityHours = 24;
 
+  // Retry Configuration
+  static const int maxRetryAttempts = 3;
+  static const int retryDelaySeconds = 2;
+  static const int maxRetryDelaySeconds = 10;
+
   // UI Constants
   static const double defaultPadding = 16.0;
   static const double defaultBorderRadius = 8.0;
   static const int defaultAnimationDuration = 300;
+}
+
+class AppColors {
+  static const primaryColor = Color(0xFF87CEEB); // Sky blue
+  static const lightBlue = Color(0xFFE0F6FF); // Very light blue
 }
