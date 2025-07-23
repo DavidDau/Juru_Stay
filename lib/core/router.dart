@@ -15,7 +15,7 @@ import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
 import '../features/commissioner/presentation/commissioner_profile_page.dart';
 
 final router = GoRouter(
-  initialLocation: '/commissioner/dashboard',
+  initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const LoadingPage()),
     GoRoute(path: '/test', builder: (context, state) => const TestPage()),
