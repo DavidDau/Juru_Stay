@@ -12,7 +12,7 @@ class JuruStayApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Helvetica'),
-      home: PlacesPage(), // Change this to HomePage() to switch screens
+      home: PlacesPage(), 
     );
   }
 }

@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
     {
       'title': 'Culinary Experience',
       'subtitle': 'Taste local flavors',
-      'price': '\$55',
+      'price': '\$60',
       'icon': Icons.restaurant,
     },
   ];
