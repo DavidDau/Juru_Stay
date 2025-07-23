@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants.dart';
 import '../controller/auth_controller.dart';
-import '../model/user_model.dart';
 
 class SignupPage extends ConsumerWidget {
   const SignupPage({super.key});
@@ -14,10 +13,7 @@ class SignupPage extends ConsumerWidget {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
 
-    ref.listen<AsyncValue<UserModel?>>(authControllerProvider, (
-      previous,
-      next,
-    ) {
+    ref.listen(authControllerProvider, (previous, next) {
       next.when(
         data: (user) {
           if (user != null) {

@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
+  HomePage({super.key});
+
   final List<Map<String, dynamic>> tours = [
     {
       'title': 'City Sightseeing',
       'subtitle': 'Explore the city\'s landmarks',
       'price': '\$25',
-      'icon': Icons.flight
+      'icon': Icons.flight,
     },
     {
       'title': 'Bike Tour',
       'subtitle': 'Discover hidden gems',
       'price': '\$45',
-      'icon': Icons.pedal_bike
+      'icon': Icons.pedal_bike,
     },
     {
       'title': 'Culinary Experience',
       'subtitle': 'Taste local flavors',
       'price': '\$55',
-      'icon': Icons.restaurant
-    }
+      'icon': Icons.restaurant,
+    },
   ];
 
   final List<Map<String, dynamic>> inspirations = [
@@ -27,14 +29,14 @@ class HomePage extends StatelessWidget {
       'title': 'Sunset at the beach',
       'desc': 'Can’t get enough of this view! 🌅',
       'hashtags': ['#travel', '#paradise'],
-      'author': 'Ella'
+      'author': 'Ella',
     },
     {
       'title': 'Snowy peaks',
       'desc': 'Winter wonderland! ❄️',
       'hashtags': ['#winter', '#adventure'],
-      'author': 'Leo'
-    }
+      'author': 'Leo',
+    },
   ];
 
   @override
@@ -50,7 +52,9 @@ class HomePage extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: ''),
           BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_none), label: ''),
+            icon: Icon(Icons.notifications_none),
+            label: '',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
         ],
       ),
@@ -70,9 +74,13 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Top Rated Tours",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                      "Top Rated Tours",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     SizedBox(height: 8),
                     Column(
                       children: tours.map((tour) {
@@ -87,15 +95,16 @@ class HomePage extends StatelessWidget {
                           trailing: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(tour['price'],
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              Icon(Icons.flight_takeoff, size: 16)
+                              Text(
+                                tour['price'],
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Icon(Icons.flight_takeoff, size: 16),
                             ],
                           ),
                         );
                       }).toList(),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -114,8 +123,10 @@ class HomePage extends StatelessWidget {
               SizedBox(height: 20),
 
               // Travel Inspirations
-              Text("Travel Inspirations",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                "Travel Inspirations",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               SizedBox(height: 10),
               SizedBox(
                 height: 250,
@@ -135,30 +146,38 @@ class HomePage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(card['title'],
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            card['title'],
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           Spacer(),
                           Text(card['desc']),
                           SizedBox(height: 8),
                           Wrap(
                             spacing: 4,
                             children: card['hashtags']
-                                .map<Widget>((tag) => Chip(
-                                      label: Text(tag,
-                                          style: TextStyle(fontSize: 12)),
-                                      backgroundColor: Colors.grey[200],
-                                    ))
+                                .map<Widget>(
+                                  (tag) => Chip(
+                                    label: Text(
+                                      tag,
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    backgroundColor: Colors.grey[200],
+                                  ),
+                                )
                                 .toList(),
                           ),
                           Spacer(),
                           Row(
                             children: [
                               CircleAvatar(
-                                  radius: 10, backgroundColor: Colors.grey),
+                                radius: 10,
+                                backgroundColor: Colors.grey,
+                              ),
                               SizedBox(width: 6),
-                              Text(card['author'])
+                              Text(card['author']),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     );

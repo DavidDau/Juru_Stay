@@ -5,6 +5,8 @@ void main() {
 }
 
 class JuruStayApp extends StatelessWidget {
+  const JuruStayApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,6 +18,8 @@ class JuruStayApp extends StatelessWidget {
 }
 
 class PlacesPage extends StatelessWidget {
+  PlacesPage({super.key});
+
   final List<String> imageUrls = [
     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
     'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4',
@@ -38,8 +42,10 @@ class PlacesPage extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 10.0,
+              ),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(20),
@@ -68,10 +74,7 @@ class PlacesPage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      imageUrls[index],
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.network(imageUrls[index], fit: BoxFit.cover),
                   );
                 },
               ),
