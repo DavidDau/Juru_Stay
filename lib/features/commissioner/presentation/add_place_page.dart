@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class AddPlacePage extends StatefulWidget {
   const AddPlacePage({super.key});
@@ -17,6 +20,7 @@ class _AddPlacePageState extends State<AddPlacePage> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController contactController = TextEditingController();
   File? selectedImage;
+  bool _isLoading = false;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -28,11 +32,61 @@ class _AddPlacePageState extends State<AddPlacePage> {
     }
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Save to Firestore or any backend here
+  Future<String?> _uploadImage(File imageFile) async {
+    try {
+      final imageId = const Uuid().v4();
+      final ref = FirebaseStorage.instance.ref().child('places/$imageId.jpg');
+      await ref.putFile(imageFile);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print("Image upload error: $e");
+      return null;
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final imageUrl = await _uploadImage(selectedImage!);
+
+    if (imageUrl == null) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to upload image')),
+      );
+      return;
+    }
+
+    final placeData = {
+      'name': nameController.text.trim(),
+      'description': descriptionController.text.trim(),
+      'price': double.tryParse(priceController.text.trim()) ?? 0.0,
+      'location': locationController.text.trim(),
+      'contact': contactController.text.trim(),
+      'imageUrl': imageUrl,
+      'createdAt': Timestamp.now(),
+    };
+
+    try {
+      await FirebaseFirestore.instance.collection('places').add(placeData);
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Place added successfully!')),
+      );
+      Navigator.pop(context); // Go back after success
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print("Error saving place: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add place')),
       );
     }
   }
@@ -82,9 +136,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
               const SizedBox(height: 20),
 
               ElevatedButton.icon(
-                onPressed: _submitForm,
+                onPressed: _isLoading ? null : _submitForm,
                 icon: const Icon(Icons.check),
-                label: const Text('Submit'),
+                label: Text(_isLoading ? 'Submitting...' : 'Submit'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
