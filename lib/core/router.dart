@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:juru_stay/features/commissioner/presentation/add_place_page.dart';
+import 'package:juru_stay/features/commissioner/presentation/track_earnings_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/create_account_page.dart';
 import '../features/test/test_page.dart';
@@ -13,7 +15,7 @@ import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
 import '../features/commissioner/presentation/commissioner_profile_page.dart';
 
 final router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/commissioner/dashboard',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const LoadingPage()),
     GoRoute(path: '/test', builder: (context, state) => const TestPage()),
@@ -40,7 +42,15 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/commissioner/profile',
-      builder: (context, state) => const CommissionerProfilePage(),
+      builder: (context, state) => const EditCommissionerProfilePage(),
     ),
+    GoRoute(
+  path: '/add-place',
+  builder: (context, state) => const AddPlacePage(),
+),
+GoRoute(
+  path: '/track-earnings',
+  builder: (context, state) => const TrackEarningsPage(),
+),
   ],
 );
