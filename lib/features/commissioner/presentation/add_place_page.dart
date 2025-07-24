@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
 
 class AddPlacePage extends StatefulWidget {
   const AddPlacePage({super.key});
@@ -19,51 +15,13 @@ class _AddPlacePageState extends State<AddPlacePage> {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController contactController = TextEditingController();
-  File? selectedImage;
+  final TextEditingController imageUrlController = TextEditingController();
   bool _isLoading = false;
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        selectedImage = File(picked.path);
-      });
-    }
-  }
-
-  Future<String?> _uploadImage(File imageFile) async {
-    try {
-      final imageId = const Uuid().v4();
-      final ref = FirebaseStorage.instance.ref().child('places/$imageId.jpg');
-      await ref.putFile(imageFile);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print("Image upload error: $e");
-      return null;
-    }
-  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an image')),
-      );
-      return;
-    }
 
     setState(() => _isLoading = true);
-
-    final imageUrl = await _uploadImage(selectedImage!);
-
-    if (imageUrl == null) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to upload image')),
-      );
-      return;
-    }
 
     final placeData = {
       'name': nameController.text.trim(),
@@ -71,7 +29,7 @@ class _AddPlacePageState extends State<AddPlacePage> {
       'price': double.tryParse(priceController.text.trim()) ?? 0.0,
       'location': locationController.text.trim(),
       'contact': contactController.text.trim(),
-      'imageUrl': imageUrl,
+      'imageUrl': imageUrlController.text.trim(),
       'createdAt': Timestamp.now(),
     };
 
@@ -106,27 +64,28 @@ class _AddPlacePageState extends State<AddPlacePage> {
           key: _formKey,
           child: ListView(
             children: [
-              selectedImage != null
-                  ? Image.file(selectedImage!, height: 180)
+              // Image preview if URL is valid
+              imageUrlController.text.trim().isNotEmpty
+                  ? Image.network(imageUrlController.text.trim(), height: 180, fit: BoxFit.cover)
                   : Container(
                       height: 180,
                       color: Colors.blue[50],
-                      child: Center(
-                        child: IconButton(
-                          icon: const Icon(Icons.add_a_photo, size: 40, color: Colors.blue),
-                          onPressed: _pickImage,
-                        ),
+                      child: const Center(
+                        child: Text('Image preview will appear here', style: TextStyle(color: Colors.blue)),
                       ),
                     ),
               const SizedBox(height: 20),
 
-              _buildTextField('Place Name', nameController),
+              _buildTextField('Image URL', imageUrlController, keyboardType: TextInputType.url),
+              const SizedBox(height: 12),
+
+              _buildTextField('Name', nameController),
               const SizedBox(height: 12),
 
               _buildTextField('Description', descriptionController, maxLines: 3),
               const SizedBox(height: 12),
 
-              _buildTextField('Price (KES)', priceController, keyboardType: TextInputType.number),
+              _buildTextField('Price (RWF)', priceController, keyboardType: TextInputType.number),
               const SizedBox(height: 12),
 
               _buildTextField('Location', locationController),
@@ -175,6 +134,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+      onChanged: (_) {
+        if (label == 'Image URL') setState(() {});
+      },
       validator: (value) => value == null || value.isEmpty ? 'Required field' : null,
     );
   }
