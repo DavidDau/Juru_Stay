@@ -12,17 +12,17 @@ class FirestoreService {
     required String contact,
   }) async {
     final uid = _auth.currentUser?.uid;
+    print("Current UID: $uid"); // Add this
+
+
     if (uid == null) {
-      throw Exception("User not logged in.");
+      throw Exception("No authenticated user.");
     }
 
     await _firestore.collection('commissioners').doc(uid).set({
       'name': name,
       'bio': bio,
       'contact': contact,
-    }, SetOptions(merge: true)); // merge = don't overwrite whole document
-    Future<void> addPlace(Place place) async {
-      await _firestore.collection('places').add(place.toMap());
-    }
+    }, SetOptions(merge: true)); // merge keeps old fields
   }
 }

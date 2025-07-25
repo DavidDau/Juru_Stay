@@ -15,7 +15,7 @@ import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
 import '../features/commissioner/presentation/commissioner_profile_page.dart';
 
 final router = GoRouter(
-  initialLocation: '/commissioner/dashboard',
+  initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const LoadingPage()),
     GoRoute(path: '/test', builder: (context, state) => const TestPage()),
@@ -47,6 +47,10 @@ final router = GoRouter(
     GoRoute(
   path: '/track-earnings',
   builder: (context, state) => const TrackEarningsPage(),
+),
+GoRoute(
+  path: '/commissioner/profile',
+  builder: (context, state) => const EditCommissionerProfilePage(),
 ),
   ],
 );
