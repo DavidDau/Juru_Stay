@@ -1,199 +1,136 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+// import 'package:logger/logger.dart';
 import '../model/user_model.dart';
-import '../../../core/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  /// Get current user
-  static User? get currentUser => _auth.currentUser;
-
-  /// Check if user is logged in
-  static bool get isLoggedIn => _auth.currentUser != null;
-
-  /// Retry helper with exponential backoff
-  static Future<T> _retryWithBackoff<T>(
-    Future<T> Function() operation,
-    String operationName,
-  ) async {
-    int attempts = 0;
-    int delay = AppConstants.retryDelaySeconds;
-
-    while (attempts < AppConstants.maxRetryAttempts) {
-      try {
-        attempts++;
-        print(
-          '🔄 Attempting $operationName (attempt $attempts/${AppConstants.maxRetryAttempts})',
-        );
-        return await operation();
-      } catch (e) {
-        print('❌ Attempt $attempts failed: $e');
-
-        // Check if this is a Firebase permission/API error
-        final errorStr = e.toString().toLowerCase();
-        if (errorStr.contains('permission_denied') ||
-            errorStr.contains('api has not been used') ||
-            errorStr.contains('unavailable')) {
-          if (attempts >= AppConstants.maxRetryAttempts) {
-            if (errorStr.contains('api has not been used')) {
-              throw Exception(
-                'Firestore API is not enabled. Please enable it at: '
-                'https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=jurustay-app',
-              );
-            }
-            rethrow;
-          }
-
-          print('⏳ Waiting ${delay}s before retry...');
-          await Future.delayed(Duration(seconds: delay));
-
-          // Exponential backoff with max cap
-          delay = (delay * 2).clamp(1, AppConstants.maxRetryDelaySeconds);
-        } else {
-          // For non-retryable errors, fail immediately
-          rethrow;
-        }
-      }
-    }
-
-    throw Exception(
-      'Operation failed after ${AppConstants.maxRetryAttempts} attempts',
-    );
+  // Stream of user changes
+  Stream<UserModel?> get user {
+    return _auth.authStateChanges().asyncMap((firebaseUser) async {
+      if (firebaseUser == null) return null;
+      return await _getUserData(firebaseUser.uid);
+    });
   }
 
-  /// Sign up with email and password
-  static Future<UserModel?> signUp({
-    required String name,
+  // Get user data from Firestore
+  Future<UserModel?> _getUserData(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
+    return doc.exists ? UserModel.fromMap(doc.data()!) : null;
+  }
+
+  // Email & Password Sign Up
+  Future<UserModel?> signUpWithEmail({
     required String email,
     required String password,
+    required String firstName,
+    required String lastName,
+    required String role,
+    String? phone,
+    String? bio,
   }) async {
     try {
+      // Create user in Firebase Auth
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      if (userCredential.user != null) {
-        return await _retryWithBackoff<UserModel?>(() async {
-          final userData = {
-            'email': email,
-            'name': name,
-            'phone_number': null,
-            'profile_image': null,
-            'is_commissioner': false,
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          };
+      // Create user document in Firestore
+      final user = UserModel(
+        uid: userCredential.user!.uid,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        role: role,
+        phone: phone,
+        bio: bio,
+      );
 
-          await _firestore
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set(userData);
+      await _firestore.collection('users').doc(user.uid).set(user.toMap());
 
-          return UserModel.fromJson({
-            'id': userCredential.user!.uid,
-            ...userData,
-          });
-        }, 'Firestore signUp userData creation');
-      }
+      return user;
     } catch (e) {
-      throw Exception('Failed to sign up: ${e.toString()}');
+      print('SignUp Error: $e');
+      return null;
     }
-    return null;
   }
 
-  /// Sign in with email and password
-  static Future<UserModel?> signIn({
-    required String email,
-    required String password,
-  }) async {
+  // Email & Password Sign In
+  Future<UserModel?> signInWithEmail(String email, String password) async {
     try {
-      print('🔐 Attempting to sign in with email: $email');
-
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
-      print('✅ Firebase Auth successful: ${userCredential.user?.uid}');
-
-      if (userCredential.user != null) {
-        print('📊 Fetching user data from Firestore...');
-        final userData = await getUserData(userCredential.user!.uid);
-        print('✅ User data retrieved: ${userData?.name}');
-        return userData;
-      }
+      return await _getUserData(userCredential.user!.uid);
     } catch (e) {
-      print('❌ Sign in error: $e');
-      throw Exception('Failed to sign in: ${e.toString()}');
+      print('SignIn Error: $e');
+      return null;
     }
-    return null;
   }
 
-  /// Get user data from Firestore
-  static Future<UserModel?> getUserData(String uid) async {
-    return await _retryWithBackoff<UserModel?>(() async {
-      try {
-        print('📊 Fetching user document for UID: $uid');
-        final userDoc = await _firestore.collection('users').doc(uid).get();
-
-        print('📄 Document exists: ${userDoc.exists}');
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
-          print('📋 User data: $userData');
-          return UserModel.fromJson({'id': uid, ...userData});
-        } else {
-          print('⚠️ User document not found in Firestore');
-          return null;
-        }
-      } catch (e) {
-        print('❌ Firestore error: $e');
-        throw e; // Re-throw to let retry mechanism handle it
-      }
-    }, 'Firestore getUserData');
-  }
-
-  /// Update user data
-  static Future<UserModel?> updateUserData({
-    required String uid,
-    required Map<String, dynamic> data,
-  }) async {
-    return await _retryWithBackoff<UserModel?>(() async {
-      final updateData = {
-        ...data,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      await _firestore.collection('users').doc(uid).update(updateData);
-      return await getUserData(uid);
-    }, 'Firestore updateUserData');
-  }
-
-  /// Sign out
-  static Future<void> signOut() async {
+  // Google Sign In
+  Future<UserModel?> signInWithGoogle() async {
     try {
-      await _auth.signOut();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = 
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user == null) return null;
+
+      // Check if user exists in Firestore
+      var userData = await _getUserData(user.uid);
+      
+      // If new user, create document
+      if (userData == null) {
+        final names = user.displayName?.split(' ') ?? ['', ''];
+        userData = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          firstName: names.first,
+          lastName: names.length > 1 ? names.last : '',
+          role: 'tourist', // Default role
+        );
+        
+        await _firestore.collection('users').doc(user.uid).set(userData.toMap());
+      }
+
+      return userData;
     } catch (e) {
-      throw Exception('Failed to sign out: ${e.toString()}');
+      print('Google SignIn Error: $e');
+      return null;
     }
   }
 
-  /// Delete user account
-  static Future<void> deleteAccount() async {
-    return await _retryWithBackoff<void>(() async {
-      final user = _auth.currentUser;
-      if (user != null) {
-        // Delete user data from Firestore
-        await _firestore.collection('users').doc(user.uid).delete();
-
-        // Delete user account
-        await user.delete();
-      }
-    }, 'deleteAccount');
+  // Sign Out
+  Future<void> signOut() async {
+    await _auth.signOut();
+    await _googleSignIn.signOut();
+  }
+    Future<String> getUserRole(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      final data = doc.data();
+      return data?['role'] ?? 'unknown';
+    } catch (e) {
+      print('GetUserRole Error: $e');
+      return 'unknown';
+    }
   }
 
-  /// Listen to auth state changes
-  static Stream<User?> get authStateChanges => _auth.authStateChanges();
 }

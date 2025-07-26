@@ -1,136 +1,210 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../core/constants.dart';
 import '../controller/auth_controller.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/rounded_button.dart';
+import 'signup_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
-class LoginPage extends ConsumerWidget {
-  const LoginPage({super.key});
+
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
 
-    ref.listen(authControllerProvider, (previous, next) {
-      next.when(
-        data: (user) {
-          if (user != null) {
-            context.go(AppConstants.homeRoute);
-          }
-        },
-        loading: () {},
-        error: (error, stackTrace) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error.toString())));
-        },
+class _LoginPageState extends ConsumerState<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isGoogleLoading = false;
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authControllerProvider.notifier).signInWithEmail(
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+          );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
       );
-    });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      setState(() => _isGoogleLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(
-        255,
-        185,
-        233,
-        255,
-      ), // Sky-blue background
+      backgroundColor: const Color(0xFFF5F9FF),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text(
-                  'Welcome Back!',
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                SvgPicture.asset(
+                  'assets/images/login.svg', // Add your SVG asset
+                  height: 200,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Welcome Back',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Color(0xFF4285F4),
                   ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Login to your JuruStay account',
-                style: TextStyle(fontSize: 18, color: Colors.black87),
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  hintText: 'Email',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+                const SizedBox(height: 10),
+                const Text(
+                  'Sign in to continue',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+                const SizedBox(height: 30),
+
+                // Email Field
+                AuthTextField(
+                  controller: _emailController,
+                  labelText: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter your email' : null,
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final authState = ref.watch(authControllerProvider);
-                    return ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          3,
-                          80,
-                          144,
-                        ), // Blue button
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: authState.isLoading
-                          ? null
-                          : () {
-                              ref
-                                  .read(authControllerProvider.notifier)
-                                  .login(
-                                    emailController.text,
-                                    passwordController.text,
-                                  );
-                            },
-                      child: authState.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Color.fromARGB(221, 255, 255, 255),
-                              ),
-                            ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: TextButton(
-                  onPressed: () => context.go(AppConstants.signupRoute),
-                  child: const Text(
-                    'Don\'t have an account? Sign up',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 3, 80, 144),
-                      fontSize: 16,
+                const SizedBox(height: 15),
+
+                // Password Field
+                AuthTextField(
+                  controller: _passwordController,
+                  labelText: 'Password',
+                  obscureText: _obscurePassword,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter your password' : null,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
                     ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
                 ),
-              ),
-            ],
+                // const SizedBox(height: 10),
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: TextButton(
+                //     onPressed: () {
+                //       // TODO: Implement password reset
+                //     },
+                //     child: const Text(
+                //       'Forgot Password?',
+                //       style: TextStyle(color: Color(0xFF4285F4)),
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(height: 20),
+
+                // Sign In Button
+                // Sign In Button
+RoundedButton(
+  text: 'Sign In',
+  onPressed: _submit,
+  isLoading: _isLoading,
+  backgroundColor: const Color(0xFF4285F4),
+  textColor: Colors.white,
+),
+const SizedBox(height: 20),
+                
+                // In your LoginPage widget's build method
+                
+                // Or Divider
+                Row(
+                  children: const [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text('OR'),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Google Sign In
+                SignInButton(
+  Buttons.google,
+  text: "Sign in with Google",
+  onPressed: () {
+    ref.read(authControllerProvider.notifier).signInWithGoogle();
+  },
+),
+              // signup Link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SignupPage(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          color: Color(0xFF4285F4),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
