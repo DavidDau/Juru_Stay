@@ -42,7 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/guides', builder: (context, state) => const GuidesPage()),
       GoRoute(
   path: '/commissioner/settings',
-  builder: (context, state) => const CommissionerSettingsPage(),
+  builder: (context, state) => const SettingsPage(),
 ),
       GoRoute(
   path: '/commissioner/dashboard',
