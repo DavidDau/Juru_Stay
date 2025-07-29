@@ -1,12 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-// import 'package:logger/logger.dart';
 import '../model/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -17,8 +21,7 @@ class AuthService {
       return await _getUserData(firebaseUser.uid);
     });
   }
-
-  // Get user data from Firestore
+// Get user data from Firestore
   Future<UserModel?> _getUserData(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.exists ? UserModel.fromMap(doc.data()!) : null;
@@ -92,6 +95,12 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user;
       if (user == null) return null;
+      //restpassword
+      // Check if user exists in Firestore
+      Future<void> sendPasswordResetEmail(String email) async {
+  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+}
+
 
       // Check if user exists in Firestore
       var userData = await _getUserData(user.uid);
@@ -132,5 +141,51 @@ class AuthService {
       return 'unknown';
     }
   }
+  // delete account
+  Future<void> deleteCommissionerProfile(String uid) async {
+    try {
+      // Delete from Firestore
+      await _firestore.collection('commissioners').doc(uid).delete();
 
+      // Delete the Firebase auth user (optional, can be dangerous)
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
+    }
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

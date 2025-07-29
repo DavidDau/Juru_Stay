@@ -1,6 +1,11 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:juru_stay/features/auth/presentation/forgot_passoword_page.dart';
 import 'package:juru_stay/features/auth/presentation/signup_page.dart';
 import 'package:juru_stay/features/commissioner/presentation/add_place_page.dart';
+import 'package:juru_stay/features/commissioner/presentation/settings_page.dart';
+import 'package:juru_stay/features/commissioner/presentation/terms_page.dart';
 import 'package:juru_stay/features/commissioner/presentation/track_earnings_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/test/test_page.dart';
@@ -11,8 +16,10 @@ import '../features/search/presentation/search_page.dart';
 import '../features/notifications/presentation/notifications_page.dart';
 import '../features/guides/presentation/guides_page.dart';
 import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
-import '../features/commissioner/presentation/commissioner_profile_page.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:juru_stay/features/auth/controller/auth_controller.dart';
+import 'package:juru_stay/features/commissioner/presentation/edit_profile_page.dart';
+import 'package:juru_stay/features/auth/model/user_model.dart';
+
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -34,8 +41,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/guides', builder: (context, state) => const GuidesPage()),
       GoRoute(
-        path: '/commissioner/dashboard',
-        builder: (context, state) => const CommissionerDashboardPage(),
+  path: '/commissioner/settings',
+  builder: (context, state) => const CommissionerSettingsPage(),
+),
+      GoRoute(
+  path: '/commissioner/dashboard',
+  builder: (context, state) {
+    final user = ref.read(authControllerProvider).value;
+    if (user == null) return const SizedBox(); // or Loading/Error page
+    return CommissionerDashboardPage(user: user);
+  },
+),
+
+      GoRoute(
+        path: '/commissioner/terms',
+        builder: (context, state) => const TermsPage(),
       ),
       GoRoute(
         path: '/add-place',
@@ -45,10 +65,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/track-earnings',
         builder: (context, state) => const TrackEarningsPage(),
       ),
-      GoRoute(
-        path: '/commissioner/profile',
-        builder: (context, state) => const EditCommissionerProfilePage(),
-      ),
+     
+GoRoute(
+  path: '/edit-commissioner-profile',
+  name: 'editCommissionerProfile',
+  builder: (context, state) {
+    final user = state.extra as UserModel; // Must be passed when navigating
+    return EditProfilePage(commissioner: user);
+  },
+),
+
+GoRoute(
+  path: '/forgot-password',
+  name: 'forgotPassword',
+  builder: (context, state) => const ForgotPasswordPage(),
+),
+
+
     ],
   );
 });  // <-- Proper closing

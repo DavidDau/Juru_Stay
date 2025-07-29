@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddPlacePage extends StatefulWidget {
   const AddPlacePage({super.key});
@@ -19,19 +20,21 @@ class _AddPlacePageState extends State<AddPlacePage> {
   bool _isLoading = false;
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    final userId = FirebaseAuth.instance.currentUser?.uid;
 
-    final placeData = {
-      'name': nameController.text.trim(),
-      'description': descriptionController.text.trim(),
-      'price': double.tryParse(priceController.text.trim()) ?? 0.0,
-      'location': locationController.text.trim(),
-      'contact': contactController.text.trim(),
-      'imageUrl': imageUrlController.text.trim(),
-      'createdAt': Timestamp.now(),
-    };
+final placeData = {
+  'name': nameController.text.trim(),
+  'description': descriptionController.text.trim(),
+  'price': double.tryParse(priceController.text.trim()) ?? 0.0,
+  'location': locationController.text.trim(),
+  'contact': contactController.text.trim(),
+  'imageUrl': imageUrlController.text.trim(),
+  'createdAt': Timestamp.now(),
+  'commissionerId': userId, // 🔥 important
+};
+
+  
 
     try {
       await FirebaseFirestore.instance.collection('places').add(placeData);
