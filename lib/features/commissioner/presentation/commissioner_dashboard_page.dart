@@ -68,29 +68,46 @@ class CommissionerDashboardPage extends StatelessWidget {
               title: const Text('Logout'),
               onTap: () => context.go('/'),
             ),
-            TextButton(
-  onPressed: () async {
-    Navigator.pop(context); // Close dialog first
+            ListTile(
+  leading: const Icon(Icons.delete, color: Colors.red),
+  title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+  onTap: () async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text('Are you sure you want to permanently delete your account? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        // Call your authService method here
-        final container = ProviderScope.containerOf(context, listen: false);
-        final authService = container.read(authServiceProvider);
-        await authService.deleteCommissionerProfile(user.uid);
-
-        // After deletion, navigate to login or splash
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting account: $e')),
-        );
+    if (confirm == true) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        try {
+          final container = ProviderScope.containerOf(context, listen: false);
+          final authService = container.read(authServiceProvider);
+          await authService.deleteCommissionerProfile(user.uid);
+          context.go('/login');
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting account: $e')),
+          );
+        }
       }
     }
   },
-  child: const Text('Delete', style: TextStyle(color: Colors.red)),
 ),
+
 
 
           ],
