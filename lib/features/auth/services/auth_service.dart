@@ -11,6 +11,7 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
@@ -21,7 +22,8 @@ class AuthService {
       return await _getUserData(firebaseUser.uid);
     });
   }
-// Get user data from Firestore
+
+  // Get user data from Firestore
   Future<UserModel?> _getUserData(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.exists ? UserModel.fromMap(doc.data()!) : null;
@@ -84,7 +86,7 @@ class AuthService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = 
+      final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
@@ -98,13 +100,12 @@ class AuthService {
       //restpassword
       // Check if user exists in Firestore
       Future<void> sendPasswordResetEmail(String email) async {
-  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-}
-
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      }
 
       // Check if user exists in Firestore
       var userData = await _getUserData(user.uid);
-      
+
       // If new user, create document
       if (userData == null) {
         final names = user.displayName?.split(' ') ?? ['', ''];
@@ -115,8 +116,11 @@ class AuthService {
           lastName: names.length > 1 ? names.last : '',
           role: 'tourist', // Default role
         );
-        
-        await _firestore.collection('users').doc(user.uid).set(userData.toMap());
+
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(userData.toMap());
       }
 
       return userData;
@@ -131,7 +135,8 @@ class AuthService {
     await _auth.signOut();
     await _googleSignIn.signOut();
   }
-    Future<String> getUserRole(String uid) async {
+
+  Future<String> getUserRole(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
       final data = doc.data();
@@ -141,51 +146,32 @@ class AuthService {
       return 'unknown';
     }
   }
+
   // delete account
   Future<void> deleteCommissionerProfile(String uid) async {
     try {
       // Delete from Firestore
       await _firestore.collection('commissioners').doc(uid).delete();
 
-      // Delete the Firebase auth user (optional, can be dangerous)
-      await _auth.currentUser?.delete();
+      // Try deleting the auth user
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.delete();
+      } else {
+        throw FirebaseAuthException(
+          code: 'no-current-user',
+          message: 'No authenticated user found.',
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        // This means the user needs to reauthenticate before deletion
+        throw Exception('Please re-authenticate to delete your account.');
+      } else {
+        throw Exception('Firebase Auth Error: ${e.message}');
+      }
     } catch (e) {
       throw Exception('Failed to delete account: $e');
     }
   }
-
-  Future<void> logout() async {
-    await _auth.signOut();
-  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

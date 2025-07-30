@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:juru_stay/features/auth/model/user_model.dart';
 import 'package:juru_stay/features/commissioner/presentation/edit_place_page.dart';
+import 'package:juru_stay/features/auth/services/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CommissionerDashboardPage extends StatelessWidget {
   final UserModel user;
@@ -65,32 +68,31 @@ class CommissionerDashboardPage extends StatelessWidget {
               title: const Text('Logout'),
               onTap: () => context.go('/'),
             ),
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Delete Account'),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text('Delete Account'),
-                    content: const Text('Are you sure you want to delete your account?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.go('/');
-                        },
-                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            TextButton(
+  onPressed: () async {
+    Navigator.pop(context); // Close dialog first
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        // Call your authService method here
+        final container = ProviderScope.containerOf(context, listen: false);
+        final authService = container.read(authServiceProvider);
+        await authService.deleteCommissionerProfile(user.uid);
+
+        // After deletion, navigate to login or splash
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting account: $e')),
+        );
+      }
+    }
+  },
+  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+),
+
+
           ],
         ),
       ),
