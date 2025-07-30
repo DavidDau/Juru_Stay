@@ -51,6 +51,7 @@ dependencies:
   flutter_read: ^1.0.6
   sign_in_button: ^4.0.1
   shared_preferences: ^2.5.3
+  mockito: 5.4.6
 
 
 dev_dependencies:
