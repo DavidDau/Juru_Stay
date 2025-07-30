@@ -7,6 +7,7 @@ import 'signup_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'forgot_passoword_page.dart';
+import 'package:juru_stay/features/auth/presentation/forgot_passoword_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -140,30 +141,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         const SizedBox(height: 10),
 
                         Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ForgotPasswordPage(),
-                                    ),
-                                  );
-                                },
-                                child: const Text('Forgot Password?'),
-                              );
-                              // TODO: Implement password reset
-                            },
-                            
-                            child: const Text(
-                              'Forgot Password?',
-                              style: TextStyle(color: Color(0xFF4285F4)),
-                            ),
-                          ),
-                        ),
+  alignment: Alignment.centerRight,
+  child: TextButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ForgotPasswordPage(),
+        ),
+      );
+    },
+    child: const Text(
+      'Forgot Password?',
+      style: TextStyle(color: Color(0xFF4285F4)),
+    ),
+  ),
+),
+
+
+                        
+
 
                         const SizedBox(height: 20),
 
