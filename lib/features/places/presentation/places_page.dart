@@ -1,59 +1,87 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
-void main() {
-  runApp(JuruStayApp());
-}
-
-class JuruStayApp extends StatelessWidget {
-  const JuruStayApp({super.key});
+class PlacesPage extends StatefulWidget {
+  const PlacesPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Helvetica'),
-      home: PlacesPage(), 
-    );
-  }
+  State<PlacesPage> createState() => _PlacesPageState();
 }
 
-class PlacesPage extends StatelessWidget {
-  PlacesPage({super.key});
+class _PlacesPageState extends State<PlacesPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final ImagePicker _picker = ImagePicker();
 
-  final List<String> imageUrls = [
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e',
-    'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4',
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470',
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-    'https://images.unsplash.com/photo-1570129477492-45c003edd2be',
-  ];
+  Future<void> uploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) return;
+
+    final File file = File(pickedFile.path);
+    final String fileName = path.basename(pickedFile.path);
+
+    try {
+      final ref = _storage.ref().child('places_images/$fileName');
+      final uploadTask = await ref.putFile(file);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+      await _firestore.collection('places').add({'url': downloadUrl});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Image uploaded successfully')),
+      );
+      setState(() {}); // to refresh the FutureBuilder
+    } catch (e) {
+      print('Upload error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Upload failed: $e')),
+      );
+    }
+  }
+
+  Future<List<String>> fetchImageUrls() async {
+    final snapshot = await _firestore.collection('places').get();
+    return snapshot.docs.map((doc) => doc['url'] as String).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Places Page.", style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "Places Page",
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_a_photo, color: Colors.black),
+            onPressed: uploadImage,
+          )
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 10.0,
-              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.blueGrey[100],
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Center(
+                child: const Center(
                   child: Text(
                     'Upload your favorite photos',
                     style: TextStyle(fontWeight: FontWeight.w500),
@@ -62,20 +90,44 @@ class PlacesPage extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: GridView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1,
-                ),
-                itemCount: imageUrls.length,
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(imageUrls[index], fit: BoxFit.cover),
-                  );
+              child: FutureBuilder<List<String>>(
+                future: fetchImageUrls(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No images found'));
+                  } else {
+                    final urls = snapshot.data!;
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 10.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: urls.length,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            urls[index],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ),
@@ -84,26 +136,4 @@ class PlacesPage extends StatelessWidget {
       ),
     );
   }
-}
-
-class Tour {
-  final String name;
-  final String description;
-  final double price;
-
-  Tour(this.name, this.description, this.price);
-}
-
-class Inspiration {
-  final String title;
-  final String caption;
-  final List<String> tags;
-  final String author;
-
-  Inspiration({
-    required this.title,
-    required this.caption,
-    required this.tags,
-    required this.author,
-  });
 }
