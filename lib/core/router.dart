@@ -14,7 +14,6 @@ import '../features/loading/loading_page.dart';
 import '../features/places/presentation/places_page.dart';
 import '../features/search/presentation/search_page.dart';
 import '../features/notifications/presentation/notifications_page.dart';
-import '../features/guides/presentation/guides_page.dart';
 import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
 import 'package:juru_stay/features/auth/controller/auth_controller.dart';
 import 'package:juru_stay/features/commissioner/presentation/edit_profile_page.dart';
@@ -39,7 +38,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         builder: (context, state) => const NotificationsPage(),
       ),
-      GoRoute(path: '/guides', builder: (context, state) => const GuidesPage()),
       GoRoute(
   path: '/commissioner/settings',
   builder: (context, state) => const SettingsPage(),
