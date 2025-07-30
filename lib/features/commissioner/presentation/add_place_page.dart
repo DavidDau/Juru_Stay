@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddPlacePage extends StatefulWidget {
   const AddPlacePage({super.key});
@@ -16,23 +16,38 @@ class _AddPlacePageState extends State<AddPlacePage> {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController contactController = TextEditingController();
-  File? selectedImage;
+  final TextEditingController imageUrlController = TextEditingController();
+  bool _isLoading = false;
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        selectedImage = File(picked.path);
-      });
-    }
-  }
+  Future<void> _submitForm() async {
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Save to Firestore or any backend here
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+final placeData = {
+  'name': nameController.text.trim(),
+  'description': descriptionController.text.trim(),
+  'price': double.tryParse(priceController.text.trim()) ?? 0.0,
+  'location': locationController.text.trim(),
+  'contact': contactController.text.trim(),
+  'imageUrl': imageUrlController.text.trim(),
+  'createdAt': Timestamp.now(),
+  'commissionerId': userId, // 🔥 important
+};
+
+  
+
+    try {
+      await FirebaseFirestore.instance.collection('places').add(placeData);
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Place added successfully!')),
+      );
+      Navigator.pop(context); // Go back after success
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print("Error saving place: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add place')),
       );
     }
   }
@@ -52,27 +67,28 @@ class _AddPlacePageState extends State<AddPlacePage> {
           key: _formKey,
           child: ListView(
             children: [
-              selectedImage != null
-                  ? Image.file(selectedImage!, height: 180)
+              // Image preview if URL is valid
+              imageUrlController.text.trim().isNotEmpty
+                  ? Image.network(imageUrlController.text.trim(), height: 180, fit: BoxFit.cover)
                   : Container(
                       height: 180,
                       color: Colors.blue[50],
-                      child: Center(
-                        child: IconButton(
-                          icon: const Icon(Icons.add_a_photo, size: 40, color: Colors.blue),
-                          onPressed: _pickImage,
-                        ),
+                      child: const Center(
+                        child: Text('Image preview will appear here', style: TextStyle(color: Colors.blue)),
                       ),
                     ),
               const SizedBox(height: 20),
 
-              _buildTextField('Place Name', nameController),
+              _buildTextField('Image URL', imageUrlController, keyboardType: TextInputType.url),
+              const SizedBox(height: 12),
+
+              _buildTextField('Name', nameController),
               const SizedBox(height: 12),
 
               _buildTextField('Description', descriptionController, maxLines: 3),
               const SizedBox(height: 12),
 
-              _buildTextField('Price (KES)', priceController, keyboardType: TextInputType.number),
+              _buildTextField('Price (RWF)', priceController, keyboardType: TextInputType.number),
               const SizedBox(height: 12),
 
               _buildTextField('Location', locationController),
@@ -82,9 +98,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
               const SizedBox(height: 20),
 
               ElevatedButton.icon(
-                onPressed: _submitForm,
+                onPressed: _isLoading ? null : _submitForm,
                 icon: const Icon(Icons.check),
-                label: const Text('Submit'),
+                label: Text(_isLoading ? 'Submitting...' : 'Submit'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -121,6 +137,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+      onChanged: (_) {
+        if (label == 'Image URL') setState(() {});
+      },
       validator: (value) => value == null || value.isEmpty ? 'Required field' : null,
     );
   }

@@ -1,88 +1,114 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
 import '../model/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
+import 'package:juru_stay/core/router.dart';
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AsyncValue<UserModel?>>((ref) {
-      // Don't automatically check current user to prevent initialization issues
-      return AuthController(ref);
-    });
+
+final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<UserModel?>>((ref) {
+  return AuthController(ref);
+});
 
 class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
-  AuthController(this.ref) : super(const AsyncValue.data(null));
-
   final Ref ref;
-
-  Future<void> login(String email, String password) async {
-    state = const AsyncValue.loading();
-    try {
-      final user = await AuthService.signIn(email: email, password: password);
-      state = AsyncValue.data(user);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+  
+  AuthController(this.ref) : super(const AsyncValue.loading()) {
+    
+    // Listen to auth changes
+    _setupAuthListener();
   }
 
-  Future<void> signup(String name, String email, String password) async {
+  Future<void> _setupAuthListener() async {
+  final authStream = ref.read(authServiceProvider).user;
+
+  authStream.listen((user) {
+    state = AsyncValue.data(user);
+  });
+}
+
+// Move this outside
+void _navigateBasedOnRole(String role) {
+  final router = ref.read(routerProvider);
+  if (role == 'commissioner') {
+    router.go('/commissioner/dashboard');
+  } else if (role == 'tourist') {
+    router.go('/places');
+  } else {
+    router.go('/home');
+  }
+}
+
+
+  AuthService get _authService => ref.read(authServiceProvider);
+
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String role,
+    String? phone,
+    String? bio,
+  }) async {
     state = const AsyncValue.loading();
     try {
-      final user = await AuthService.signUp(
-        name: name,
+      final user = await _authService.signUpWithEmail(
         email: email,
         password: password,
+        firstName: firstName,
+        lastName: lastName,
+        role: role,
+        phone: phone,
+        bio: bio,
       );
-      state = AsyncValue.data(user);
+      if (user == null) throw Exception('Sign up failed');
+state = AsyncValue.data(user);
+final userRole = await _authService.getUserRole(user.uid);
+_navigateBasedOnRole(userRole);
+
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
-  Future<void> logout() async {
+  Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      await AuthService.signOut();
-      state = const AsyncValue.data(null);
+      final user = await _authService.signInWithEmail(email, password);
+      if (user == null) throw Exception('Invalid credentials');
+state = AsyncValue.data(user);
+final role = await _authService.getUserRole(user.uid);
+_navigateBasedOnRole(role);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
-  Future<void> getCurrentUser() async {
-    try {
-      print('👤 Checking current user...');
-      final currentUser = AuthService.currentUser;
-      if (currentUser != null) {
-        print('✅ Current user found: ${currentUser.email}');
-        final user = await AuthService.getUserData(currentUser.uid);
-        state = AsyncValue.data(user);
-      } else {
-        print('ℹ️ No current user found');
-        state = const AsyncValue.data(null);
-      }
-    } catch (e, st) {
-      print('❌ Get current user error: $e');
-      state = AsyncValue.error(e, st);
-    }
-  }
+  Future<void> signInWithGoogle() async {
+  state = const AsyncValue.loading();
+  try {
+    final user = await _authService.signInWithGoogle();
+    if (user == null) throw Exception('Google sign in failed');
+    state = AsyncValue.data(user);
 
-  Future<void> updateUserProfile(Map<String, dynamic> data) async {
-    state = const AsyncValue.loading();
-    try {
-      final currentUser = AuthService.currentUser;
-      if (currentUser != null) {
-        final user = await AuthService.updateUserData(
-          uid: currentUser.uid,
-          data: data,
-        );
-        state = AsyncValue.data(user);
-      }
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    // Get role and navigate
+    final userRole = await _authService.getUserRole(user.uid);
+    _navigateBasedOnRole(userRole);
+  } catch (e, st) {
+    state = AsyncValue.error(e, st);
+    rethrow;
   }
+}
 
-  void reset() {
+
+  Future<void> signOut() async {
+    await _authService.signOut();
     state = const AsyncValue.data(null);
   }
 }
+
+// Provider for AuthService
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
+});

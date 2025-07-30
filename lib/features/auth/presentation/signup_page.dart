@@ -1,308 +1,193 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../core/constants.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/rounded_button.dart';
 import '../controller/auth_controller.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
-  const SignupPage({super.key});
+  const SignupPage({Key? key}) : super(key: key);
 
   @override
   ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
 class _SignupPageState extends ConsumerState<SignupPage> {
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  String? selectedRole;
-  final List<String> roles = ['Tourist', 'Commissioner'];
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _bioController = TextEditingController();
+
+  String _selectedRole = 'tourist';
+  bool _isCommissioner = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    firstNameController.dispose();
-    lastNameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    _bioController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authControllerProvider.notifier).signUp(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            role: _selectedRole,
+            phone: _isCommissioner ? _phoneController.text.trim() : null,
+            bio: _isCommissioner ? _bioController.text.trim() : null,
+          );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF87CEEB), // Sky blue
-              Color(0xFFE0F6FF), // Very light blue
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Container(
-                padding: const EdgeInsets.all(30),
+      backgroundColor: const Color(0xFFF5F9FF),
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        backgroundColor: const Color(0xFF4285F4),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Role Selection
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // First Name Field
-                    _buildTextField(
-                      controller: firstNameController,
-                      hint: 'First Name',
-                      icon: Icons.person,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Last Name Field
-                    _buildTextField(
-                      controller: lastNameController,
-                      hint: 'Last Name',
-                      icon: Icons.person_outline,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email Field
-                    _buildTextField(
-                      controller: emailController,
-                      hint: 'Email',
-                      icon: Icons.email,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Role Dropdown
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: DropdownButtonFormField<String>(
-                        value: selectedRole,
-                        hint: const Row(
-                          children: [
-                            Icon(Icons.work, color: Colors.grey),
-                            SizedBox(width: 12),
-                            Text('Select Role'),
-                          ],
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
-                          ),
-                        ),
-                        items: roles.map((String role) {
-                          return DropdownMenuItem<String>(
-                            value: role,
-                            child: Text(role),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
+                    ListTile(
+                      title: const Text('Tourist'),
+                      leading: Radio<String>(
+                        value: 'tourist',
+                        groupValue: _selectedRole,
+                        onChanged: (value) {
                           setState(() {
-                            selectedRole = newValue;
+                            _selectedRole = value!;
+                            _isCommissioner = false;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Please select a role' : null,
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Password Field
-                    _buildTextField(
-                      controller: passwordController,
-                      hint: 'Password',
-                      icon: Icons.lock,
-                      isPassword: true,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Confirm Password Field
-                    _buildTextField(
-                      controller: confirmPasswordController,
-                      hint: 'Confirm Password',
-                      icon: Icons.lock_outline,
-                      isPassword: true,
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Sign Up Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: _signup,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 5,
-                        ),
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    ListTile(
+                      title: const Text('Commissioner'),
+                      leading: Radio<String>(
+                        value: 'commissioner',
+                        groupValue: _selectedRole,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedRole = value!;
+                            _isCommissioner = true;
+                          });
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Login Link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Already have an account? '),
-                        GestureDetector(
-                          onTap: () => context.go('/login'),
-                          child: const Text(
-                            'Login',
-                            style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
-            ),
+              const SizedBox(height: 20),
+
+              // Personal Info
+              AuthTextField(
+                controller: _firstNameController,
+                labelText: 'First Name',
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your first name' : null,
+              ),
+              const SizedBox(height: 15),
+              AuthTextField(
+                controller: _lastNameController,
+                labelText: 'Last Name',
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your last name' : null,
+              ),
+              const SizedBox(height: 15),
+              AuthTextField(
+                controller: _emailController,
+                labelText: 'Email',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter your email' : null,
+              ),
+              const SizedBox(height: 15),
+              AuthTextField(
+                controller: _passwordController,
+                labelText: 'Password',
+                obscureText: true,
+                validator: (value) => value!.length < 6
+                    ? 'Password must be at least 6 characters'
+                    : null,
+              ),
+              const SizedBox(height: 15),
+              AuthTextField(
+                controller: _confirmPasswordController,
+                labelText: 'Confirm Password',
+                obscureText: true,
+                validator: (value) {
+                  if (value != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+
+              // Commissioner Fields
+              if (_isCommissioner) ...[
+                const SizedBox(height: 20),
+                AuthTextField(
+                  controller: _phoneController,
+                  labelText: 'Phone Number',
+                  keyboardType: TextInputType.phone,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter your phone number' : null,
+                ),
+                const SizedBox(height: 15),
+                AuthTextField(
+                  controller: _bioController,
+                  labelText: 'Bio',
+                  keyboardType: TextInputType.multiline,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter your bio' : null,
+                ),
+              ],
+
+              const SizedBox(height: 30),
+              RoundedButton(
+                text: 'Sign Up',
+                onPressed: _submit,
+                isLoading: _isLoading,
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.grey),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _signup() {
-    // Validation
-    if (firstNameController.text.trim().isEmpty) {
-      _showError('Please enter your first name');
-      return;
-    }
-    if (lastNameController.text.trim().isEmpty) {
-      _showError('Please enter your last name');
-      return;
-    }
-    if (emailController.text.trim().isEmpty) {
-      _showError('Please enter your email');
-      return;
-    }
-    if (!emailController.text.trim().contains('@')) {
-      _showError('Please enter a valid email');
-      return;
-    }
-    if (selectedRole == null) {
-      _showError('Please select a role');
-      return;
-    }
-    if (passwordController.text.trim().isEmpty) {
-      _showError('Please enter a password');
-      return;
-    }
-    if (passwordController.text.trim().length < 6) {
-      _showError('Password must be at least 6 characters');
-      return;
-    }
-    if (passwordController.text.trim() !=
-        confirmPasswordController.text.trim()) {
-      _showError('Passwords do not match');
-      return;
-    }
-
-    // Combine first and last name
-    final fullName =
-        '${firstNameController.text.trim()} ${lastNameController.text.trim()}';
-
-    // Call the signup function
-    ref
-        .read(authControllerProvider.notifier)
-        .signup(
-          fullName,
-          emailController.text.trim(),
-          passwordController.text.trim(),
-        );
-
-    // Show success message and redirect to login
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Navigate to login page
-    context.go('/login');
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 }

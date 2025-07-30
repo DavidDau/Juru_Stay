@@ -12,7 +12,20 @@
           "package_name": "com.example.juru_stay"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "931019713536-tg2e3ucv090oblgn0f9dnn4836s2uqip.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.juru_stay",
+            "certificate_hash": "04c37f2c9114c285d964ca961fc8eb4fbaed73f6"
+          }
+        },
+        {
+          "client_id": "931019713536-lkdbiej0hml291ad1gfi4upjs76l25p0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAZgysz_QmyyZgVS-0X0DImWS_RzfnhYR4"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "931019713536-lkdbiej0hml291ad1gfi4upjs76l25p0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "931019713536-kjmh0eqqneria611volg3d2ihi98dnj0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.juruStay"
+              }
+            }
+          ]
         }
       }
     }
