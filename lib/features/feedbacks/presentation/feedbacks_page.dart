@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FeedbacksPage extends StatefulWidget {
   const FeedbacksPage({super.key});
@@ -13,6 +14,25 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
   final messageController = TextEditingController();
   int selectedRating = 5;
   bool isSubmitting = false;
+  int selectedIndex = 2;
+
+  void _onItemTapped(int index) {
+    setState(() => selectedIndex = index);
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/search');
+        break;
+      case 2:
+        context.go('/feedbacks');
+        break;
+      case 3:
+        context.go('/terms');
+        break;
+    }
+  }
 
   void _showAddFeedbackDialog(BuildContext context) {
     showDialog(
@@ -107,7 +127,7 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
                       }
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: ${e.toString()}")),
+                        SnackBar(content: Text("Error: \${e.toString()}")),
                       );
                     } finally {
                       if (mounted) {
@@ -163,11 +183,6 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
                 children: [
                   Text('Adventure Awaits! 🌍'),
                   Spacer(),
-                  Icon(Icons.emoji_nature),
-                  SizedBox(width: 4),
-                  Icon(Icons.photo),
-                  SizedBox(width: 4),
-                  Icon(Icons.chat_bubble),
                 ],
               ),
             ),
@@ -241,6 +256,20 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: const Color(0xFFB0C4D8),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
+        ],
       ),
     );
   }
