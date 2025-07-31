@@ -31,7 +31,7 @@ void _navigateBasedOnRole(String role) {
   if (role == 'commissioner') {
     router.go('/commissioner/dashboard');
   } else if (role == 'tourist') {
-    router.go('/places');
+    router.go('/home');
   } else {
     router.go('/home');
   }
