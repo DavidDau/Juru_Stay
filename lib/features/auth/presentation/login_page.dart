@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'forgot_passoword_page.dart';
 import 'package:juru_stay/features/auth/presentation/forgot_passoword_page.dart';
+import 'package:juru_stay/core/themes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -153,7 +154,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     },
     child: const Text(
       'Forgot Password?',
-      style: TextStyle(color: Color(0xFF4285F4)),
+      style: TextStyle(color: AppTheme.primaryBlue,),
     ),
   ),
 ),

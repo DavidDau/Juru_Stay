@@ -7,40 +7,24 @@ class TrackEarningsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Track Earnings',
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Track Earnings'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Overview',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: const [
-                _StatCard(title: 'Earnings', value: 'KES 12,000'),
-                SizedBox(width: 12),
-                _StatCard(title: 'Bookings', value: '18'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const _StatCard(title: 'Rating', value: '4.6 ⭐'),
-            const SizedBox(height: 24),
-            const Text(
+          children: const [
+            _StatCard(title: 'Earnings', value: 'RWF 1,200,000'),
+            SizedBox(height: 10),
+            _StatCard(title: 'Bookings', value: '27'),
+            SizedBox(height: 10),
+            _StatCard(title: 'Rating', value: '4.6 ⭐'),
+            SizedBox(height: 20),
+            Text(
               'Earnings Over Time',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 200, child: _EarningsChart()),
+            SizedBox(height: 200, child: _EarningsChart()),
           ],
         ),
       ),
@@ -56,21 +40,19 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(title, style: const TextStyle(color: Colors.black54)),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value, style: const TextStyle(fontSize: 16)),
+        ],
       ),
     );
   }
@@ -83,43 +65,48 @@ class _EarningsChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return LineChart(
       LineChartData(
+        minX: 0,
+        maxX: 5,
+        minY: 0,
+        maxY: 2000,
         lineBarsData: [
           LineChartBarData(
+            spots: const [
+              FlSpot(0, 1200),
+              FlSpot(1, 1500),
+              FlSpot(2, 1000),
+              FlSpot(3, 1700),
+              FlSpot(4, 1400),
+              FlSpot(5, 1800),
+            ],
             isCurved: true,
             color: Colors.blue,
-            barWidth: 4,
+            barWidth: 3,
             dotData: FlDotData(show: false),
-            spots: const [
-              FlSpot(0, 2),
-              FlSpot(1, 2.5),
-              FlSpot(2, 3.6),
-              FlSpot(3, 2.8),
-              FlSpot(4, 4.2),
-              FlSpot(5, 3.5),
-            ],
           ),
         ],
         titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, _) => Text('RWF ${value.toInt()}'),
+              reservedSize: 60,
+            ),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, _) {
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-                return Text(months[value.toInt() % months.length], style: const TextStyle(color: Colors.black));
+                return Text(months[value.toInt()]);
               },
             ),
           ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, _) {
-                return Text('KES ${value.toInt()}k', style: const TextStyle(color: Colors.black));
-              },
-            ),
-          ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
-        borderData: FlBorderData(show: false),
-        gridData: FlGridData(show: false),
+        gridData: FlGridData(show: true),
+        borderData: FlBorderData(show: true),
       ),
     );
   }
