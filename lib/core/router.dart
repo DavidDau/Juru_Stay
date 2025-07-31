@@ -12,6 +12,7 @@ import '../features/test/test_page.dart';
 import '../features/homepage/homepage.dart';
 import '../features/loading/loading_page.dart';
 import '../features/places/presentation/places_page.dart';
+import '../features/feedbacks/presentation/feedbacks_page.dart';
 import '../features/search/presentation/search_page.dart';
 import '../features/notifications/presentation/notifications_page.dart';
 import '../features/commissioner/presentation/commissioner_dashboard_page.dart';
@@ -35,8 +36,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/places', builder: (context, state) => PlacesPage()),
       GoRoute(path: '/search', builder: (context, state) => SearchPage()),
       GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationsPage(),
+        path: '/feedbacks',
+        builder: (context, state) => const FeedbacksPage(),
       ),
       GoRoute(
   path: '/commissioner/settings',

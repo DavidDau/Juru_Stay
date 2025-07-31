@@ -1,22 +1,156 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class FeedbacksPage extends StatelessWidget {
+class FeedbacksPage extends StatefulWidget {
   const FeedbacksPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final reviews = [
-      {'name': 'John', 'message': 'Amazing experience, highly recommend!'},
-      {'name': 'Hilda', 'message': 'Amazing experience, highly recommend!'},
-      {'name': 'Gerald', 'message': 'Amazing experience, highly recommend!'},
-      {'name': 'Cherish', 'message': 'Amazing experience, highly recommend!'},
-    ];
+  State<FeedbacksPage> createState() => _FeedbacksPageState();
+}
 
+class _FeedbacksPageState extends State<FeedbacksPage> {
+  final nameController = TextEditingController();
+  final messageController = TextEditingController();
+  int selectedRating = 5;
+  bool isSubmitting = false;
+
+  void _showAddFeedbackDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Add Feedback'),
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Your Name'),
+              ),
+              TextField(
+                controller: messageController,
+                decoration: const InputDecoration(labelText: 'Your Message'),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Text('Rating:'),
+                  const SizedBox(width: 10),
+                  DropdownButton<int>(
+                    value: selectedRating,
+                    items: List.generate(5, (index) => index + 1)
+                        .map((value) => DropdownMenuItem<int>(
+                              value: value,
+                              child: Row(
+                                children: [
+                                  Text('$value'),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.star,
+                                      color: Colors.amber, size: 16),
+                                ],
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setStateDialog(() {
+                          selectedRating = value;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: isSubmitting
+                ? null
+                : () async {
+                    final name = nameController.text.trim();
+                    final msg = messageController.text.trim();
+
+                    if (name.isEmpty || msg.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please fill all fields")),
+                      );
+                      return;
+                    }
+
+                    setState(() => isSubmitting = true);
+
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('feedbacks')
+                          .add({
+                        'tourist_name': name,
+                        'message': msg,
+                        'rating': selectedRating,
+                        'timestamp': FieldValue.serverTimestamp(),
+                      });
+
+                      nameController.clear();
+                      messageController.clear();
+                      selectedRating = 5;
+
+                      if (mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Feedback submitted!")),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Error: ${e.toString()}")),
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => isSubmitting = false);
+                      }
+                    }
+                  },
+            child: isSubmitting
+                ? const CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2)
+                : const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStars(int rating) {
+    return Row(
+      children: List.generate(
+        5,
+        (index) => Icon(
+          index < rating ? Icons.star : Icons.star_border,
+          size: 16,
+          color: Colors.amber,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFB0C4D8),
       appBar: AppBar(
         title: const Text('Tourists Reviews'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_comment),
+            onPressed: () => _showAddFeedbackDialog(context),
+          ),
+        ],
       ),
-      backgroundColor: const Color(0xFFB0C4D8),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -29,7 +163,7 @@ class FeedbacksPage extends StatelessWidget {
                 children: [
                   Text('Adventure Awaits! 🌍'),
                   Spacer(),
-                  Icon(Icons.landscape),
+                  Icon(Icons.emoji_nature),
                   SizedBox(width: 4),
                   Icon(Icons.photo),
                   SizedBox(width: 4),
@@ -38,49 +172,73 @@ class FeedbacksPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Tourists Reviews', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Tourist Reviews',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            ...reviews.map((review) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CircleAvatar(radius: 20, backgroundColor: Colors.grey),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('feedbacks')
+                    .orderBy('timestamp', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No feedbacks yet.'));
+                  }
+
+                  final reviews = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: reviews.length,
+                    itemBuilder: (context, index) {
+                      final data = reviews[index].data() as Map<String, dynamic>;
+                      final name = data['tourist_name'] ?? 'Anonymous';
+                      final message = data['message'] ?? '';
+                      final rating = data['rating'] ?? 5;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Text(review['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                const Spacer(),
-                                const Row(
-                                  children: [
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
-                                  ],
-                                )
-                              ],
+                            const CircleAvatar(
+                                radius: 20, backgroundColor: Colors.grey),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      const Spacer(),
+                                      _buildStars(rating),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(message),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(review['message']!),
-                            const SizedBox(height: 4),
-                            const Icon(Icons.edit, size: 16, color: Colors.grey),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                )),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
