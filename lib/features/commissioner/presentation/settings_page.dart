@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:juru_stay/core/theme_notifier.dart';
 import 'package:juru_stay/core/language_notifier.dart';
 import 'package:juru_stay/core/font_notifier.dart';
+import 'package:juru_stay/l10n/app_localizations.dart';
+
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -16,13 +18,16 @@ class SettingsPage extends ConsumerWidget {
     final fontSize = ref.watch(fontSizeNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
+
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Theme toggle
           ListTile(
-            title: const Text('Dark Mode'),
+          
+            title: Text(AppLocalizations.of(context)!.darkMode),
+
             trailing: Switch(
               value: isDarkMode,
               onChanged: (_) => ref.read(themeNotifierProvider.notifier).toggleTheme(),
@@ -33,7 +38,8 @@ class SettingsPage extends ConsumerWidget {
 
           // Language Dropdown
           ListTile(
-            title: const Text('Language'),
+            title: Text(AppLocalizations.of(context)!.language),
+
             trailing: DropdownButton<String>(
               value: language,
               items: const [
@@ -52,21 +58,34 @@ class SettingsPage extends ConsumerWidget {
 
           // Font Size Dropdown
           ListTile(
-            title: const Text('Font Size'),
-            trailing: DropdownButton<String>(
-              value: fontSize,
-              items: const [
-                DropdownMenuItem(value: 'small', child: Text('Small')),
-                DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                DropdownMenuItem(value: 'large', child: Text('Large')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(fontSizeNotifierProvider.notifier).setFontSize(value);
-                }
-              },
-            ),
-          ),
+  title: Text(
+    AppLocalizations.of(context)!.fontSize,
+    style: const TextStyle(fontSize: 16), // 🔧 Explicit fontSize added
+  ),
+  trailing: DropdownButton<String>(
+    value: fontSize,
+    items: const [
+      DropdownMenuItem(
+        value: 'small',
+        child: Text('Small', style: TextStyle(fontSize: 14)), // 🔧 Font size here too
+      ),
+      DropdownMenuItem(
+        value: 'medium',
+        child: Text('Medium', style: TextStyle(fontSize: 16)),
+      ),
+      DropdownMenuItem(
+        value: 'large',
+        child: Text('Large', style: TextStyle(fontSize: 18)),
+      ),
+    ],
+    onChanged: (value) {
+      if (value != null) {
+        ref.read(fontSizeNotifierProvider.notifier).setFontSize(value);
+      }
+    },
+  ),
+),
+
         ],
       ),
     );
