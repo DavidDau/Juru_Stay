@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:juru_stay/features/auth/model/user_model.dart';
 import 'package:juru_stay/features/commissioner/presentation/edit_place_page.dart';
-import 'package:juru_stay/features/commissioner/presentation/controllers/dashboard_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Make sure this is imported
+import 'package:juru_stay/features/commissioner/controllers/dashboard_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:juru_stay/core/themes.dart';
 class CommissionerDashboardPage extends ConsumerWidget {
   final UserModel user;
 
@@ -19,7 +20,7 @@ class CommissionerDashboardPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Commissioner Dashboard'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppTheme.primaryBlue,
       ),
       drawer: _buildDrawer(context, ref, firstLetter),
       body: Padding(
@@ -51,7 +52,7 @@ class CommissionerDashboardPage extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.blue),
+            decoration: const BoxDecoration(color: AppTheme.primaryBlue,),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -60,13 +61,13 @@ class CommissionerDashboardPage extends ConsumerWidget {
                   backgroundColor: Colors.white,
                   child: Text(
                     firstLetter,
-                    style: const TextStyle(fontSize: 24, color: Colors.blue),
+                    style: const TextStyle(fontSize: 24, color: AppTheme.primaryBlue,),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   '${user.firstName} ${user.lastName}',
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  style: const TextStyle(color: AppTheme.primaryBlue, fontSize: 18),
                 ),
               ],
             ),
@@ -170,7 +171,7 @@ class CommissionerDashboardPage extends ConsumerWidget {
                 padding: EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Icon(Icons.add_home_work, size: 40, color: Colors.blue),
+                    Icon(Icons.add_home_work, size: 40, color: AppTheme.primaryBlue,),
                     SizedBox(height: 10),
                     Text('Submit New Accommodation', textAlign: TextAlign.center),
                   ],
@@ -186,7 +187,7 @@ class CommissionerDashboardPage extends ConsumerWidget {
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: InkWell(
-              onTap: () => context.push('/commissioner/places'),
+              onTap: () => context.push('/track-earnings'),
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(16.0),
