@@ -29,7 +29,7 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
         context.go('/feedbacks');
         break;
       case 3:
-        context.go('/terms');
+        context.go('/commissioner/settings');
         break;
     }
   }
