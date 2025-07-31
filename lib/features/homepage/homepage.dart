@@ -77,6 +77,7 @@ class _HomePageState extends State<HomePage> {
             _buildDrawerItem(Icons.description, 'Terms', () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsPage()));
             }),
+            
             // _buildDrawerItem(Icons.dark_mode, 'Mode', () {
             //   // Toggle mode logic can be added here.
             // }),
