@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
         context.go('/feedbacks');
         break;
       case 3:
-        context.go('/terms');
+        context.go('//commissioner/settings');
         break;
     }
   }

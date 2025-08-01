@@ -59,7 +59,7 @@ class _SearchPageState extends State<SearchPage> {
           children: [
             _buildDrawerItem(Icons.home, 'Home', () => context.go('/home')),
             _buildDrawerItem(Icons.photo_album, 'Gallery', () => context.go('/search')),
-            _buildDrawerItem(Icons.description, 'Terms', () => context.go('/terms')),
+            _buildDrawerItem(Icons.description, 'Terms', () => context.go('//commissioner/settings')),
             _buildDrawerItem(Icons.feedback, 'Feedbacks', () => context.go('/feedbacks')),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.black87),
